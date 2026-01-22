@@ -1,4 +1,4 @@
-import { RangeSetBuilder, StateField, type EditorState, type Extension } from "@codemirror/state";
+import { RangeSetBuilder, type Extension } from "@codemirror/state";
 import {
   Decoration,
   ViewPlugin,
@@ -13,60 +13,6 @@ import { getCalloutBodyLines } from "../utils/getCalloutBodyText";
 import { CopyMarkdownButtonWidget, CopyPlainTextButtonWidget } from "./copyButtonWidget";
 
 const CALLOUT_HEADER_WITH_INDENT_CAPTURE_REGEX = /^((?:> )+)\[!.+\]/;
-
-/**
- * Information about a callout's position in the document.
- */
-export interface CalloutLineRange {
-  lineStart: number;
-  lineEnd: number;
-}
-
-/**
- * StateField that tracks all callout line ranges in the document.
- * This enables other parts of the code to look up callout positions.
- */
-export const calloutRangesField = StateField.define<CalloutLineRange[]>({
-  create(state: EditorState): CalloutLineRange[] {
-    return computeCalloutRanges(state);
-  },
-  update(
-    value: CalloutLineRange[],
-    tr: { docChanged: boolean; state: EditorState },
-  ): CalloutLineRange[] {
-    if (tr.docChanged) {
-      return computeCalloutRanges(tr.state);
-    }
-    return value;
-  },
-});
-
-function computeCalloutRanges(state: EditorState): CalloutLineRange[] {
-  const ranges: CalloutLineRange[] = [];
-  const doc = state.doc;
-
-  for (let line = 1; line <= doc.lines; line++) {
-    const lineText = doc.line(line).text;
-    const calloutIndent = CALLOUT_HEADER_WITH_INDENT_CAPTURE_REGEX.exec(lineText)?.[1];
-    if (calloutIndent === undefined) {
-      continue;
-    }
-
-    // Find the end of this callout
-    let lineEnd = line;
-    for (let i = line + 1; i <= doc.lines; i++) {
-      const bodyLineText = doc.line(i).text;
-      if (!bodyLineText.startsWith(calloutIndent)) {
-        break;
-      }
-      lineEnd = i;
-    }
-
-    ranges.push({ lineStart: line, lineEnd });
-  }
-
-  return ranges;
-}
 
 export function createCalloutCopyButtonViewPlugin(
   pluginSettingsManager: PluginSettingsManager,
@@ -147,10 +93,9 @@ export function createCalloutCopyButtonViewPlugin(
 
 /**
  * Returns the extensions needed for callout copy functionality.
- * Includes both the StateField for tracking callout ranges and the ViewPlugin.
  */
 export function createCalloutCopyButtonExtensions(
   pluginSettingsManager: PluginSettingsManager,
 ): Extension[] {
-  return [calloutRangesField, createCalloutCopyButtonViewPlugin(pluginSettingsManager)];
+  return [createCalloutCopyButtonViewPlugin(pluginSettingsManager)];
 }

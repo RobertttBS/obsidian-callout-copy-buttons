@@ -185,37 +185,48 @@ function getMarkdownForCalloutNode(calloutNode: HTMLElement, app: App): string |
 
 /**
  * Finds the callout range that contains the given line number.
+ * Scans outwards from the target line for O(callout size) complexity
+ * instead of O(document size).
  */
 function findCalloutRangeContainingLine(
   doc: { lines: number; line: (n: number) => { text: string } },
   targetLine: number,
 ): { lineStart: number; lineEnd: number } | null {
-  // Scan for callout headers and find one that contains the target line
-  for (let line = 1; line <= doc.lines; line++) {
-    const lineText = doc.line(line).text;
-    const indent = CALLOUT_HEADER_REGEX.exec(lineText)?.[1];
-    if (indent === undefined) {
-      continue;
+  const docLineCount = doc.lines;
+
+  // 1. Scan UPWARDS to find the header
+  let lineStart = -1;
+  let indent = "";
+
+  for (let i = targetLine; i >= 1; i--) {
+    const text = doc.line(i).text;
+    const match = CALLOUT_HEADER_REGEX.exec(text);
+
+    // Found the header
+    if (match && match[1]) {
+      lineStart = i;
+      indent = match[1]; // Capture the "> " indentation level
+      break;
     }
 
-    // Found a callout header at this line
-    const lineStart = line;
-    let lineEnd = line;
-
-    // Find the end of this callout
-    for (let i = line + 1; i <= doc.lines; i++) {
-      const bodyLineText = doc.line(i).text;
-      if (!bodyLineText.startsWith(indent)) {
-        break;
-      }
-      lineEnd = i;
-    }
-
-    // Check if target line is within this callout
-    if (targetLine >= lineStart && targetLine <= lineEnd) {
-      return { lineStart, lineEnd };
+    // If we hit a line that doesn't look like a blockquote before finding a header, abort
+    if (!text.trim().startsWith(">")) {
+      return null;
     }
   }
 
-  return null;
+  if (lineStart === -1) return null;
+
+  // 2. Scan DOWNWARDS to find the end
+  let lineEnd = targetLine;
+  for (let i = targetLine + 1; i <= docLineCount; i++) {
+    const text = doc.line(i).text;
+    // If the line doesn't start with the same indent level, the callout has ended
+    if (!text.startsWith(indent)) {
+      break;
+    }
+    lineEnd = i;
+  }
+
+  return { lineStart, lineEnd };
 }
