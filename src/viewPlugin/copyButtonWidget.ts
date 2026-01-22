@@ -19,6 +19,15 @@ abstract class BaseCopyButtonWidget extends WidgetType {
   protected abstract getTextToCopy(): string;
   protected abstract getTooltip(): string;
 
+  // OPTIMIZATION: Critical for CodeMirror performance.
+  // Prevents destroying/recreating the DOM node if parameters haven't changed.
+  eq(other: BaseCopyButtonWidget): boolean {
+    return (
+      other.text === this.text && other.buttonType === this.buttonType
+      // PluginSettingsManager is a singleton reference, so strict equality is fine.
+    );
+  }
+
   toDOM(): HTMLElement {
     const copyButton = document.createElement("div");
     const buttonTypeClass = `callout-copy-button-${this.buttonType}`;

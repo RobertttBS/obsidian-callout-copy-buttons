@@ -86,12 +86,8 @@ function getCalloutBodyLinesFromSectionInfo(
  * This converts raw markdown callout body lines to plain text format.
  */
 export function stripLeadingQuoteMarkers(text: string): string {
-  return text
-    .split("\n")
-    .map((line) => {
-      // Strip leading "> " patterns (one or more levels)
-      return line.replace(/^(?:> )+/, "");
-    })
-    .join("\n")
-    .trim();
+  // OPTIMIZATION: Using a global multiline regex replace is often faster
+  // and creates fewer intermediate objects than split/map/join for simple patterns.
+  if (!text) return "";
+  return text.replace(/^(?:> )+/gm, "").trim();
 }
