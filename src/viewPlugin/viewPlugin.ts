@@ -10,7 +10,7 @@ import {
 } from "@codemirror/view";
 import { type PluginSettingsManager } from "../settings";
 import { getCalloutBodyLines } from "../utils/getCalloutBodyText";
-import { CopyButtonWidget } from "./copyButtonWidget";
+import { CopyMarkdownButtonWidget, CopyPlainTextButtonWidget } from "./copyButtonWidget";
 
 const CALLOUT_HEADER_WITH_INDENT_CAPTURE_REGEX = /^((?:> )+)\[!.+\]/;
 
@@ -120,12 +120,18 @@ export function createCalloutCopyButtonViewPlugin(
         });
         builder.add(headerLineInfo.from, headerLineInfo.from, lineDeco);
 
-        // Add widget decoration for Source Mode copy button
-        const widgetDeco = Decoration.widget({
-          widget: new CopyButtonWidget(calloutBodyText, pluginSettingsManager),
+        // Add widget decorations for Source Mode copy buttons (markdown and plain text)
+        const markdownWidgetDeco = Decoration.widget({
+          widget: new CopyMarkdownButtonWidget(calloutBodyText, pluginSettingsManager),
           side: 1, // Place the widget on the right
         });
-        builder.add(headerLineInfo.from, headerLineInfo.from, widgetDeco);
+        builder.add(headerLineInfo.from, headerLineInfo.from, markdownWidgetDeco);
+
+        const plainTextWidgetDeco = Decoration.widget({
+          widget: new CopyPlainTextButtonWidget(calloutBodyText, pluginSettingsManager),
+          side: 1, // Place the widget after the markdown button
+        });
+        builder.add(headerLineInfo.from, headerLineInfo.from, plainTextWidgetDeco);
       }
 
       return builder.finish();

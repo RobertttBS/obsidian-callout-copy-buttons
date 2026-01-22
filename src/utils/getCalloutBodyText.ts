@@ -46,7 +46,7 @@ export function getCalloutBodyLines({
 }
 
 export function getCalloutBodyTextFromSectionInfo(
-  calloutSectionInfo: MarkdownSectionInformation
+  calloutSectionInfo: MarkdownSectionInformation,
 ): string | null {
   const calloutBodyLines = getCalloutBodyLinesFromSectionInfo(calloutSectionInfo);
   if (calloutBodyLines === null) {
@@ -56,7 +56,7 @@ export function getCalloutBodyTextFromSectionInfo(
 }
 
 function getCalloutBodyLinesFromSectionInfo(
-  calloutSectionInfo: MarkdownSectionInformation
+  calloutSectionInfo: MarkdownSectionInformation,
 ): string[] | null {
   const { text, lineStart, lineEnd } = calloutSectionInfo;
   const allLines = text.split("\n");
@@ -79,4 +79,19 @@ function getCalloutBodyLinesFromSectionInfo(
     calloutBodyLines.push(calloutBodyLineText);
   }
   return calloutBodyLines;
+}
+
+/**
+ * Strips the leading "> " quote markers from each line of the callout body text.
+ * This converts raw markdown callout body lines to plain text format.
+ */
+export function stripLeadingQuoteMarkers(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => {
+      // Strip leading "> " patterns (one or more levels)
+      return line.replace(/^(?:> )+/, "");
+    })
+    .join("\n")
+    .trim();
 }

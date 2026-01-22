@@ -3,6 +3,8 @@ import { type Plugin, PluginSettingTab, Setting } from "obsidian";
 
 type SourceModeSettings = {
   showCopyButtonOnlyOnLineHover: boolean;
+  showCopyMarkdownButton: boolean;
+  showCopyPlainTextButton: boolean;
 };
 
 type ReadingModeSettings = {
@@ -34,6 +36,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   showCopyFormatIndicators: false,
   sourceModeSettings: {
     showCopyButtonOnlyOnLineHover: false,
+    showCopyMarkdownButton: true,
+    showCopyPlainTextButton: true,
   },
   readingModeSettings: {
     showCopyMarkdownButton: true,
@@ -84,7 +88,7 @@ export class PluginSettingsManager extends PluginSettingTab {
 
   private async setSetting<K extends SettingKey>(
     settingKey: K,
-    value: PluginSettings[K]
+    value: PluginSettings[K],
   ): Promise<void> {
     this.settings[settingKey] = value;
     await this.saveSettings();
@@ -107,22 +111,22 @@ export class PluginSettingsManager extends PluginSettingTab {
 
   private getCopyButtonSettingsClassNames(): Record<string, boolean> {
     const showCopyFormatIndicators = this.getSetting("showCopyFormatIndicators");
-    const { showCopyButtonOnlyOnLineHover } = this.getSetting("sourceModeSettings");
-    const {
-      showCopyMarkdownButton: showCopyMarkdownButton,
-      showCopyPlainTextButton: showCopyPlainTextButton,
-    } = this.getSetting("readingModeSettings");
+    const sourceModeSettings = this.getSetting("sourceModeSettings");
+    const readingModeSettings = this.getSetting("readingModeSettings");
     return {
       "show-copy-format-indicators": showCopyFormatIndicators,
-      "show-source-mode-copy-button-only-on-line-hover": showCopyButtonOnlyOnLineHover,
-      "show-reading-mode-copy-markdown-buttons": showCopyMarkdownButton,
-      "show-reading-mode-copy-plain-text-buttons": showCopyPlainTextButton,
+      "show-source-mode-copy-button-only-on-line-hover":
+        sourceModeSettings.showCopyButtonOnlyOnLineHover,
+      "show-source-mode-copy-markdown-buttons": sourceModeSettings.showCopyMarkdownButton,
+      "show-source-mode-copy-plain-text-buttons": sourceModeSettings.showCopyPlainTextButton,
+      "show-reading-mode-copy-markdown-buttons": readingModeSettings.showCopyMarkdownButton,
+      "show-reading-mode-copy-plain-text-buttons": readingModeSettings.showCopyPlainTextButton,
     };
   }
 
   private async setSourceModeSetting<K extends keyof SourceModeSettings>(
     modeKey: K,
-    value: SourceModeSettings[K]
+    value: SourceModeSettings[K],
   ): Promise<void> {
     const newSourceModeSettings = { ...this.settings.sourceModeSettings, [modeKey]: value };
     await this.setSetting("sourceModeSettings", newSourceModeSettings);
@@ -130,7 +134,7 @@ export class PluginSettingsManager extends PluginSettingTab {
 
   private async setReadingModeSetting<K extends keyof ReadingModeSettings>(
     modeKey: K,
-    value: ReadingModeSettings[K]
+    value: ReadingModeSettings[K],
   ): Promise<void> {
     const newReadingModeSettings = { ...this.settings.readingModeSettings, [modeKey]: value };
     await this.setSetting("readingModeSettings", newReadingModeSettings);
@@ -155,18 +159,20 @@ export class PluginSettingsManager extends PluginSettingTab {
     new Setting(this.containerEl)
       .setName("Show copy format indicators on copy buttons")
       .setDesc(
-        "Whether to add little 'P' (plain text) and 'M' (Markdown) indicators to the copy buttons that indicate what format the copied content will be in."
+        "Whether to add little 'P' (plain text) and 'M' (Markdown) indicators to the copy buttons that indicate what format the copied content will be in.",
       )
       .addToggle((toggle) =>
         toggle
           .setValue(this.settings.showCopyFormatIndicators)
-          .onChange((value) => this.setSetting("showCopyFormatIndicators", value))
+          .onChange((value) => this.setSetting("showCopyFormatIndicators", value)),
       );
   }
 
   private displaySourceModeSettings(): void {
     new Setting(this.containerEl).setName("Source mode").setHeading();
     this.displayShowCopyButtonOnlyOnLineHoverSetting();
+    this.displaySourceModeShowCopyMarkdownButtonSetting();
+    this.displaySourceModeShowCopyPlainTextButtonSetting();
   }
 
   private displayShowCopyButtonOnlyOnLineHoverSetting(): void {
@@ -176,7 +182,29 @@ export class PluginSettingsManager extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle
           .setValue(this.settings.sourceModeSettings.showCopyButtonOnlyOnLineHover)
-          .onChange((value) => this.setSourceModeSetting("showCopyButtonOnlyOnLineHover", value))
+          .onChange((value) => this.setSourceModeSetting("showCopyButtonOnlyOnLineHover", value)),
+      );
+  }
+
+  private displaySourceModeShowCopyMarkdownButtonSetting(): void {
+    new Setting(this.containerEl)
+      .setName("Show 'Copy (Markdown)' button")
+      .setDesc("Whether to add 'Copy (Markdown)' buttons to callout blocks in Source Mode.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.settings.sourceModeSettings.showCopyMarkdownButton)
+          .onChange((value) => this.setSourceModeSetting("showCopyMarkdownButton", value)),
+      );
+  }
+
+  private displaySourceModeShowCopyPlainTextButtonSetting(): void {
+    new Setting(this.containerEl)
+      .setName("Show 'Copy (plain text)' button")
+      .setDesc("Whether to add 'Copy (plain text)' buttons to callout blocks in Source Mode.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.settings.sourceModeSettings.showCopyPlainTextButton)
+          .onChange((value) => this.setSourceModeSetting("showCopyPlainTextButton", value)),
       );
   }
 
@@ -193,7 +221,7 @@ export class PluginSettingsManager extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle
           .setValue(this.settings.readingModeSettings.showCopyMarkdownButton)
-          .onChange((value) => this.setReadingModeSetting("showCopyMarkdownButton", value))
+          .onChange((value) => this.setReadingModeSetting("showCopyMarkdownButton", value)),
       );
   }
 
@@ -204,7 +232,7 @@ export class PluginSettingsManager extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle
           .setValue(this.settings.readingModeSettings.showCopyPlainTextButton)
-          .onChange((value) => this.setReadingModeSetting("showCopyPlainTextButton", value))
+          .onChange((value) => this.setReadingModeSetting("showCopyPlainTextButton", value)),
       );
   }
 
