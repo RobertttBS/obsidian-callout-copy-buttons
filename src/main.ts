@@ -24,7 +24,10 @@ export default class CalloutCopyButtonPlugin extends Plugin {
       const calloutCopyButtonViewPlugin = createCalloutCopyButtonViewPlugin(pluginSettingsManager);
       this.registerEditorExtension([calloutCopyButtonViewPlugin]);
       this.registerMarkdownPostProcessor(getMarkdownPostProcessor({ pluginSettingsManager }));
-      this.calloutDivObserver = watchAndAddCopyButtonsToDOM({ pluginSettingsManager });
+      this.calloutDivObserver = watchAndAddCopyButtonsToDOM({
+        pluginSettingsManager,
+        app: this.app,
+      });
     });
   }
 

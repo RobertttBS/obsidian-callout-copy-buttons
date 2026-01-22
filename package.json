@@ -16,6 +16,8 @@
     "obsidian": "^1.7.2"
   },
   "devDependencies": {
+    "@codemirror/state": "^6.5.4",
+    "@codemirror/view": "^6.39.11",
     "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.2",
     "@types/webpack": "^5.28.5",

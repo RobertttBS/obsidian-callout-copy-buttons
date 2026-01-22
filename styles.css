@@ -83,11 +83,27 @@ div[data-mode="preview"] {
   }
 }
 
+/* Live Preview mode (.cm-callout) - respect source mode settings */
+.cm-callout {
+  .callout-copy-button-markdown:not(.show-source-mode-copy-markdown-buttons) {
+    display: none;
+  }
+  .callout-copy-button-plain-text:not(.show-source-mode-copy-plain-text-buttons) {
+    display: none;
+  }
+}
+
 .callout-copy-button-widget {
   position: absolute;
   top: 0px;
   inset-inline-end: 0px;
   &:not(.show-source-mode-copy-button-only-on-line-hover) {
     opacity: 1;
+  }
+  &.callout-copy-button-markdown:not(.show-source-mode-copy-markdown-buttons) {
+    display: none;
+  }
+  &.callout-copy-button-plain-text:not(.show-source-mode-copy-plain-text-buttons) {
+    display: none;
   }
 }
